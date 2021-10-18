@@ -1,0 +1,41 @@
+
+SCENARIO: Everyday from Monday to Friday one directory will be created under /fullbackup/dailybackup/YYYY-MM-DD and it will move backup to its parent directory everyday midnight /fullbackup/archive/, However Saturday, Sunday and Monday directories will move to /fullbackup/archive path every Monday evening.
+Directory Names Example: 2018-12-24 2018-12-25 2018-12-26 2018-12-27 2018-12-28
+Question: I would like to delete directories older than two days from /fullbackup/archive path. How do you do it using any scripting methods.
+SCRIPT:
+#!/bin/bash
+## Delete directories older than 2 days ba,sed on dir name validation
+ls -ltr /fullbackup/archive/ | awk '{print $9}' > /scripts/dirs
+for i in cat /scripts/dirs
+do
+STARTTIME=$(date +%s -d"$i 00:00:00")
+ENDTIME=$(date +%s)
+echo $((ENDTIME-STARTTIME)) | awk '{print int ($1/60)}' > /scripts/value
+COUNT='cat /scripts/value'
+if [ $COUNT -gt 2880 ]
+then
+echo "Directories arde older then 2 days $i" > /scripts/joblog
+rm -rf /fullbachuo/archive/$iffi
+done
+
+SCENARIO:Collecting and storing CPU, Memory and Disk Usage Report from servers in single file. Using single shell script
+#!/bin/bash
+HOSTNAME:$(hostname)
+DATET=$(date "+%Y-%m-%d %H:%M:%S")
+CPUSAGE:$(top -b -n 1 -d1 | grep "cpu(s)" |awk '{print $2}' |awk -F. '{print $1} )
+MEMUSAGE=$(free |grep Mem |awk '{print $3/$2 * 100}')
+DISKUSAGE=$(df -P |column -t |awk '{print $5}' |tail -n |sed 's/%//g')
+
+echo "HostName, Date&Time, CPUi(%), Mem(%), Disk(%)" >> /opt/usagereport
+echo "$HOSTNAME, $DATET, $CPUSAGE, $MEMUSAGE, $DISKUSAGE" >> /opt/usagereport
+
+for i in 'cat /scripts/hostlist':
+do
+HOSTNAME:$(ssh $i hostname)
+DATET=$(ssh $i  date "+%Y-%m-%d %H:%M:%S")
+CPUSAGE:$(ssh $i  top -b -n 1 -d1 | grep "cpu(s)" |awk '{print $2}' |awk -F. '{print $1} )
+MEMUSAGE=$(ssh $i  free |grep Mem |awk '{print $3/$2 * 100}')
+DISKUSAGE=$(ssh $i  df -P |column -t |awk '{print $5}' |tail -n |sed 's/%//g')
+
+echo "$HOSTNAME, $DATET, $CPUSAGE, $MEMUSAGE, $DISKUSAGE" >> /opt/usagereport
+done
